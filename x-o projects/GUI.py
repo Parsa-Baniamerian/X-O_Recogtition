@@ -1,4 +1,8 @@
 from customtkinter import *
+from hebb import training as hebb_training, testing as hebb_testing
+from perceptron import training as perceptron_training, testing as perceptron_testing
+from multi_layer_perceptron import training as multi_layer_perceptron_training, testing as multi_layer_perceptron_testing
+from adaline import training as adaline_training, testing as adaline_testing
 
 app = CTk()
 app.geometry("600x330")
