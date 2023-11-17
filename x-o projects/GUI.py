@@ -1,10 +1,9 @@
 from customtkinter import *
 from hebb import training as hebb_training, testing as hebb_testing
-from perceptron import training as perceptron_training, testing as perceptron_testing
-from multi_layer_perceptron import training as multi_layer_perceptron_training, testing as multi_layer_perceptron_testing
-from adaline import training as adaline_training, testing as adaline_testing
+
 
 app = CTk()
+app.title("X/O Recognition")
 app.geometry("600x330")
 
 set_appearance_mode("dark")
@@ -12,6 +11,13 @@ light_color = "#c9c8bf"
 light_hover_color = "#a1a099"
 dark_color = "#356296"
 dark_hover_color = "#1e3e63"
+
+weights, bias = None, None
+
+algorithms_functions = {
+    "Hebb": {"train": hebb_training, "test": hebb_testing},
+
+}
 
 
 def prepare_data():
@@ -40,7 +46,6 @@ def exist_same_data(file_name, new_data):
 
 
 def save_data_in_dataset(new_data):
-
     dataset_file = "./Dataset.txt"
     if not exist_same_data(file_name=dataset_file, new_data=new_data):
         with open(dataset_file, "a") as file:
@@ -52,8 +57,6 @@ def save_data_in_dataset(new_data):
 
 # * HANDLING BUTTON CLICKS
 def add_btn_clicked():
-    add_data_result_lbl.configure(text="")
-    output_lbl.configure(text="")
     is_saved = save_data_in_dataset(prepare_data())
     reset_grid()
     if is_saved:
@@ -63,23 +66,49 @@ def add_btn_clicked():
         add_data_result_lbl.configure(
             text="This data already exists in the dataset")
 
+    add_data_result_lbl.configure(text="")
+    output_lbl.configure(text="")
+    error_message_lbl.configure(text="")
+
 
 def train_btn_clicked():
-    algorithm = algorithms_combo.get()
-    train_result_lbl.configure(text="")
+    global weights, bias
+    selected_algorithm = algorithms_combo.get()
+    algorithm = algorithms_functions.get(selected_algorithm)
+    weights, bias = algorithm["train"](dataset_file="./Dataset.txt")
+    train_result_lbl.configure(
+        text=f"{selected_algorithm} algorithm was trained successfully")
+
+    add_data_result_lbl.configure(text="")
     output_lbl.configure(text="")
-    train_result_lbl.configure(text = algorithm +" algorithm was trained successfully")
+    error_message_lbl.configure(text="")
+
 
 def test_btn_clicked():
+    global weights, bias
+    selected_algorithm = algorithms_combo.get()
+    algorithm = algorithms_functions.get(selected_algorithm)
+    input_data = prepare_data()
+    if all(x == -1 for x in input_data[1:]):
+        error_message_lbl.configure(text="Please enter an entry in the grid!")
+    else:
+        if weights == None or bias == None:
+            error_message_lbl.configure(text="Please train the model first!")
+        else:
+            result = algorithm["test"](input_data, weights, bias)
+            output_lbl.configure(text=result)
 
     add_data_result_lbl.configure(text="")
     train_result_lbl.configure(text="")
-    output_lbl.configure(text="X")
 
 
 def reset_grid():
     for btn in buttons:
         btn.configure(fg_color=dark_color, hover_color=dark_hover_color)
+    add_data_result_lbl.configure(text="")
+    train_result_lbl.configure(text="")
+    output_lbl.configure(text="")
+    error_message_lbl.configure(text="")
 
 
 def btn_clicked(id):
@@ -248,5 +277,16 @@ output_lbl = CTkLabel(
     text_color=light_color
 )
 output_lbl.place(relx=0.87, rely=0.9, anchor="center")
+
+error_message_lbl = CTkLabel(
+    master=app,
+    width=300,
+    height=10,
+    text="",
+    font=("Atrial", 13),
+    fg_color="transparent",
+    text_color=light_color
+)
+error_message_lbl.place(relx=0.75, rely=0.97, anchor="center")
 
 app.mainloop()
