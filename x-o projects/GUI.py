@@ -10,12 +10,50 @@ dark_color = "#356296"
 dark_hover_color = "#1e3e63"
 
 
+def prepare_data():
+    new_data = []
+    input_label = switch.get()  # 0 for label O and 1 for label X
+    new_data.append(input_label)
+    for btn in buttons:
+        btn_color = btn.cget("fg_color")
+
+        if btn_color == dark_color:
+            new_data.append(0)
+        elif btn_color == light_color:
+            new_data.append(1)
+    return new_data
+
+
+def exist_same_data(file_name, new_data):
+    with open(file_name, "r") as file:
+        for line in file:
+            existing_data = list(map(int, line.strip().split(",")))
+            if new_data == existing_data:
+                return True
+    return False
+
+
+def save_data_in_dataset(new_data):
+
+    dataset_file = "./Dataset.txt"
+    if not exist_same_data(file_name=dataset_file, new_data=new_data):
+        with open(dataset_file, "a") as file:
+            data_str = ",".join(map(str, new_data))
+            file.write(data_str + "\n")
+        return True
+    return False
+
 # * HANDLING BUTTON CLICKS
+
+
 def add_btn_clicked():
-    label_input = switch.get()  # 0 for o and 1 for x
-    print(label_input)
     output_lbl.configure(text="")
-    message_lbl.configure(text="The new data was saved in the dataset")
+    is_saved = save_data_in_dataset(prepare_data())
+    reset_grid()
+    if is_saved:
+        message_lbl.configure(text="The new data was saved in the dataset")
+    else:
+        message_lbl.configure(text="This data already exists in the dataset")
 
 
 def test_btn_clicked():
@@ -23,7 +61,7 @@ def test_btn_clicked():
     output_lbl.configure(text="X")
 
 
-def reset_btn_clicked():
+def reset_grid():
     for btn in buttons:
         btn.configure(fg_color=dark_color, hover_color=dark_hover_color)
 
@@ -97,7 +135,7 @@ reset_btn = CTkButton(
     width=50,
     height=25,
     border_width=2,
-    command=reset_btn_clicked,
+    command=reset_grid,
 )
 reset_btn.place(relx=0.11, rely=0.92, anchor="center")
 
