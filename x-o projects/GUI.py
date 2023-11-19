@@ -1,5 +1,9 @@
 from customtkinter import *
 from hebb import training as hebb_training, testing as hebb_testing
+from perceptron import training as perceptron_training, testing as perceptron_testing
+from multi_class_perceptron import training as multi_class_perceptron_training, testing as multi_class_perceptron_testing
+from adaline import training as adaline_training, testing as adaline_testing
+from MLP import training as MLP_training, testing as MLP_testing
 
 
 app = CTk()
@@ -12,11 +16,14 @@ light_hover_color = "#a1a099"
 dark_color = "#356296"
 dark_hover_color = "#1e3e63"
 
-weights, bias = None, None
+weights, bias, current_algorithm_trained = None, None, None
 
 algorithms_functions = {
     "Hebb": {"train": hebb_training, "test": hebb_testing},
-
+    "Perceptron": {"train": perceptron_training, "test": perceptron_testing},
+    "Multi-Class Perceptron": {"train": multi_class_perceptron_training, "test": multi_class_perceptron_testing},
+    "Adaline": {"train": adaline_training, "test": adaline_testing},
+    "MLP": {"train": MLP_training, "test": MLP_testing}
 }
 
 
@@ -65,17 +72,17 @@ def add_btn_clicked():
     else:
         add_data_result_lbl.configure(
             text="This data already exists in the dataset")
-
     add_data_result_lbl.configure(text="")
     output_lbl.configure(text="")
     error_message_lbl.configure(text="")
 
 
 def train_btn_clicked():
-    global weights, bias
+    global weights, bias, current_algorithm_trained
     selected_algorithm = algorithms_combo.get()
     algorithm = algorithms_functions.get(selected_algorithm)
     weights, bias = algorithm["train"](dataset_file="./Dataset.txt")
+    current_algorithm_trained = selected_algorithm
     train_result_lbl.configure(
         text=f"{selected_algorithm} algorithm was trained successfully")
 
@@ -85,21 +92,26 @@ def train_btn_clicked():
 
 
 def test_btn_clicked():
-    global weights, bias
+    global weights, bias, current_algorithm_trained
+    error_message_lbl.configure(text="")
+    add_data_result_lbl.configure(text="")
+    train_result_lbl.configure(text="")
     selected_algorithm = algorithms_combo.get()
+
     algorithm = algorithms_functions.get(selected_algorithm)
     input_data = prepare_data()
+
     if all(x == -1 for x in input_data[1:]):
         error_message_lbl.configure(text="Please enter an entry in the grid!")
     else:
         if weights == None or bias == None:
             error_message_lbl.configure(text="Please train the model first!")
+        elif selected_algorithm != current_algorithm_trained:
+            error_message_lbl.configure(
+                text=f"Please train the {selected_algorithm} algorithm first!")
         else:
             result = algorithm["test"](input_data, weights, bias)
             output_lbl.configure(text=result)
-
-    add_data_result_lbl.configure(text="")
-    train_result_lbl.configure(text="")
 
 
 def reset_grid():
@@ -210,9 +222,9 @@ switch.place(relx=0.59, rely=0.45, anchor="center")
 # *COMBOBOX
 algorithms_combo = CTkComboBox(
     master=app,
-    values=["Hebb", "Perceptron", "MLP", "Adaline"],
+    values=["Hebb", "Perceptron", "Multi-Class Perceptron", "Adaline", "MLP"],
     text_color=light_color,
-    font=("Atrial", 12, "bold"),
+    font=("Atrial", 11, "bold"),
     width=105,
     border_color=dark_color,
     button_color=dark_color,
@@ -269,14 +281,14 @@ train_result_lbl.place(relx=0.75, rely=0.76, anchor="center")
 
 output_lbl = CTkLabel(
     master=app,
-    width=60,
+    width=95,
     height=25,
     text="",
-    font=("Atrial", 28, "bold"),
+    font=("Atrial", 22, "bold"),
     fg_color="transparent",
     text_color=light_color
 )
-output_lbl.place(relx=0.87, rely=0.9, anchor="center")
+output_lbl.place(relx=0.91, rely=0.9, anchor="center")
 
 error_message_lbl = CTkLabel(
     master=app,
