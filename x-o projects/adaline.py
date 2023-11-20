@@ -1,8 +1,8 @@
 def training(dataset_file):
     weights = [0] * 25
     bias = 0
-    learning_rate = 0.01
-    theta = 0.2
+    learning_rate = 0.004
+    theta = 0.001
 
     convergence = False
     while not convergence:
