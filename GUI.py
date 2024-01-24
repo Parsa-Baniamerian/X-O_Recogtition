@@ -1,4 +1,5 @@
 from customtkinter import *
+import time
 from hebb import training as hebb_training, testing as hebb_testing
 from perceptron import training as perceptron_training, testing as perceptron_testing
 from multi_class_perceptron import training as multi_class_perceptron_training, testing as multi_class_perceptron_testing
@@ -9,6 +10,7 @@ from MLP import training as MLP_training, testing as MLP_testing
 app = CTk()
 app.title("X/O Recognition")
 app.geometry("600x330")
+app.resizable(False, False)
 
 set_appearance_mode("dark")
 light_color = "#c9c8bf"
@@ -17,6 +19,7 @@ dark_color = "#356296"
 dark_hover_color = "#1e3e63"
 
 weights, bias, current_algorithm_trained = None, None, None
+l1_weights, l1_bias, l2_weights, l2_bias = None, None, None, None
 
 algorithms_functions = {
     "Hebb": {"train": hebb_training, "test": hebb_testing},
@@ -53,7 +56,7 @@ def exist_same_data(file_name, new_data):
 
 
 def save_data_in_dataset(new_data):
-    dataset_file = "./Dataset.txt"
+    dataset_file = "./Dataset/Dataset.txt"
     if not exist_same_data(file_name=dataset_file, new_data=new_data):
         with open(dataset_file, "a") as file:
             data_str = ",".join(map(str, new_data))
@@ -72,16 +75,23 @@ def add_btn_clicked():
     else:
         add_data_result_lbl.configure(
             text="This data already exists in the dataset")
-    add_data_result_lbl.configure(text="")
+    train_result_lbl.configure(text="")
     output_lbl.configure(text="")
     error_message_lbl.configure(text="")
 
 
 def train_btn_clicked():
-    global weights, bias, current_algorithm_trained
+    global weights, bias, current_algorithm_trained, l1_weights, l1_bias, l2_weights, l2_bias
     selected_algorithm = algorithms_combo.get()
     algorithm = algorithms_functions.get(selected_algorithm)
-    weights, bias = algorithm["train"](dataset_file="./Dataset.txt")
+    start_time = time.time()
+    if selected_algorithm == "MLP":
+        l1_weights, l1_bias, l2_weights, l2_bias = algorithm["train"](dataset_file="./Dataset/train_data.txt")
+    else:
+        weights, bias = algorithm["train"](dataset_file="./Dataset/train_data.txt")
+    finish_time = time.time()
+    runtime = (finish_time - start_time) * 1000
+    print(f"{selected_algorithm} algorithm was trained in {runtime} ms")
     current_algorithm_trained = selected_algorithm
     train_result_lbl.configure(
         text=f"{selected_algorithm} algorithm was trained successfully")
@@ -92,10 +102,11 @@ def train_btn_clicked():
 
 
 def test_btn_clicked():
-    global weights, bias, current_algorithm_trained
+    global weights, bias, current_algorithm_trained, l1_weights, l1_bias, l2_weights, l2_bias
     error_message_lbl.configure(text="")
     add_data_result_lbl.configure(text="")
     train_result_lbl.configure(text="")
+    output_lbl.configure(text="")
     selected_algorithm = algorithms_combo.get()
 
     algorithm = algorithms_functions.get(selected_algorithm)
@@ -104,13 +115,16 @@ def test_btn_clicked():
     if all(x == -1 for x in input_data[1:]):
         error_message_lbl.configure(text="Please enter an entry in the grid!")
     else:
-        if weights == None or bias == None:
+        if (selected_algorithm != "MLP" and weights == None):
             error_message_lbl.configure(text="Please train the model first!")
         elif selected_algorithm != current_algorithm_trained:
             error_message_lbl.configure(
                 text=f"Please train the {selected_algorithm} algorithm first!")
         else:
-            result = algorithm["test"](input_data, weights, bias)
+            if selected_algorithm == "MLP":
+                result = algorithm["test"](input_data[1:], l1_weights, l1_bias, l2_weights, l2_bias)
+            else:
+                result = algorithm["test"](input_data, weights, bias)
             output_lbl.configure(text=result)
 
 

@@ -1,10 +1,16 @@
+import random
+
 def training(dataset_file):
-    weights = [0] * 25
+    weights = [random.uniform(-0.5, 0.5) for _ in range(25)]
     bias = 0
-    learning_rate = 0.2
+    learning_rate = 0.02
     theta = 0.2
+
+    max_iterations = 150
+    iteration_count = 0
     weight_changed = True
-    while weight_changed:
+    while weight_changed and iteration_count < max_iterations:
+        iteration_count += 1
         weight_changed = False
         with open(dataset_file, "r") as dataset:
             for line in dataset:
@@ -36,6 +42,6 @@ def testing(input_data, weights, bias):
         yni += weights[i-1] * input_data[i]
     if yni > theta:
         return "X"
-    elif yni < theta:
+    elif yni < -theta:
         return "O"
     return "Unknown"
