@@ -23,7 +23,7 @@ X/O Recognition is a Python application designed to recognize patterns of X and 
 ## Usage:
 1. **Clone the Repository:** Clone the repository to your local machine using the command:
     ```bash
-    git clone https://github.com/your_username/XO-Recognition.git
+    git clone https://github.com/Parsa-Baniamerian/X-O_Recogtition.git
     ```
     
 2. **Run the Application:** Launch the application by running the `GUI.py` file:
